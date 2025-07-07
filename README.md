@@ -19,7 +19,8 @@ Please give this repo a ⭐ if it was helpful to you.
 
 ## Demo
 
-[Add demo video/gif here]
+<img width="1352" alt="Screenshot 2025-07-07 at 9 52 34 PM" src="https://github.com/user-attachments/assets/e3bc3a63-eae1-4937-a0a2-9d8b96868c61" />
+
 
 ## Features
 
