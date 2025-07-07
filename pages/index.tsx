@@ -1,115 +1,157 @@
-import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
+type Message = { user: string; bot: string };
+
 export default function Home() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [tasks, setTasks] = useState<string[]>([]);
+  const [input, setInput] = useState("");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load messages & tasks from localStorage
+  useEffect(() => {
+    const savedMessages = localStorage.getItem("messages");
+    const savedTasks = localStorage.getItem("tasks");
+    if (savedMessages) setMessages(JSON.parse(savedMessages));
+    if (savedTasks) setTasks(JSON.parse(savedTasks));
+  }, []);
+
+  // Persist messages & tasks
+  useEffect(() => {
+    localStorage.setItem("messages", JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    setProcessing(true);
+
+    // Add task if user mentions it
+    const lower = input.toLowerCase();
+    const addTaskMatch = lower.match(
+      /(?:add|remember|do|create|go|get)\s(.+)/i
+    );
+
+    const updatedTasks = [...tasks];
+
+    if (addTaskMatch) {
+      const newTask = addTaskMatch[1].trim();
+      if (newTask && !tasks.includes(newTask)) {
+        updatedTasks.push(newTask);
+        setTasks(updatedTasks);
+      }
+    }
+
+    const taskContext = updatedTasks.length
+      ? `Current tasks: ${updatedTasks.join(", ")}. `
+      : "No tasks yet. ";
+
+    const fullMessage = `${taskContext}\nUser: ${input}`;
+
+    try {
+      const res = await fetch("/api/agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: fullMessage, sessionId }),
+      });
+
+      const data = await res.json();
+
+      setMessages(prev => [...prev, { user: input, bot: data.reply }]);
+      setSessionId(data.sessionId);
+      setInput("");
+    } catch (err) {
+      console.error("Error:", err);
+      setMessages(prev => [
+        ...prev,
+        { user: input, bot: "An error occurred. Please try again." },
+      ]);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              pages/index.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div className={`${geistSans.className} ${geistMono.className}`}>
+      <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-6 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+        <div className="w-full max-w-xl">
+          <h1 className="mb-8 text-center text-3xl font-bold">
+            Task Manager Agent
+          </h1>
+
+          <div className="mb-8 max-h-96 overflow-y-auto space-y-6">
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+                <p className="mb-2">
+                  <span className="font-semibold text-blue-600 dark:text-blue-400">
+                    You:
+                  </span>{" "}
+                  {msg.user}
+                </p>
+                <p>
+                  <span className="font-semibold text-green-600 dark:text-green-400">
+                    Agent:
+                  </span>{" "}
+                  {msg.bot}
+                </p>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <form onSubmit={sendMessage} className="flex gap-2">
+            <input
+              className="flex-1 rounded border border-gray-300 bg-white px-4 py-2 transition focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:focus:ring-blue-400"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="Type a message..."
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <button
+              type="submit"
+              className="flex min-w-[90px] items-center justify-center rounded bg-blue-600 px-6 py-2 font-semibold text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              disabled={!input.trim() || processing}>
+              {processing ? (
+                <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+              ) : (
+                "Send"
+              )}
+            </button>
+          </form>
+
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => {
+                setMessages([]);
+                setTasks([]);
+                localStorage.removeItem("messages");
+                localStorage.removeItem("tasks");
+              }}
+              className="text-sm text-red-500 hover:underline">
+              Clear conversation and tasks
+            </button>
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
