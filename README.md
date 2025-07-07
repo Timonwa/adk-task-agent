@@ -1,40 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# AI Task Manager Agent with ADK-TS and Next.js
+
+This is a Next.js application that demonstrates how to build an intelligent AI agent using ADK-TS (Agent Development Kit) from IQ AI. The project showcases a task management agent that can understand natural language commands, manage tasks, and maintain conversation context using localStorage for demo purposes.
+
+This is the code demo for the blog post: **Building an AI Agent with ADK-TS and Next.js: A Step-by-Step Guide**.
+
+Please give this repo a ⭐ if it was helpful to you.
+
+## Table of Contents
+
+- [AI Task Manager Agent with ADK-TS and Next.js](#ai-task-manager-agent-with-adk-ts-and-nextjs)
+  - [Table of Contents](#table-of-contents)
+  - [Demo](#demo)
+  - [Features](#features)
+  - [Prerequisites](#prerequisites)
+  - [Getting Started](#getting-started)
+  - [Tech Stack](#tech-stack)
+  - [License](#license)
+
+## Demo
+
+[Add demo video/gif here]
+
+## Features
+
+- Intelligent task management through natural language conversation
+- Real-time AI responses powered by OpenAI GPT models
+- Task persistence using localStorage (demo) with automatic saving
+- Modern, responsive UI with dark mode support
+- Scrollable chat interface with auto-scroll to latest messages
+- Session management with ADK-TS framework
+
+## Prerequisites
+
+- Node.js (LTS version recommended)
+- OpenAI API key (or Anthropic/Google Gemini keys)
+- Basic knowledge of JavaScript/TypeScript and Next.js
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository:
+
+```bash
+git https://github.com/Timonwa/adk-task-agent.git
+cd adk-task-agent
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Create a .env.local file in the root directory and add your OpenAI API key:
+
+```
+OPENAI_API_KEY=your_openai_api_key
+```
+
+You can also use Anthropic or Google Gemini keys by modifying the `agent.ts` file accordingly.
+
+4. Run the development server:
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+- [Next.js](https://nextjs.org/)
+- [ADK-TS](https://github.com/IQAIcom/adk-ts) - Agent Development Kit for TypeScript
+- [OpenAI](https://openai.com/) - LLM provider for AI responses
+- [Tailwind CSS](https://tailwindcss.com/)
+- [TypeScript](https://www.typescriptlang.org/)
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Once the application is running, you can interact with the AI agent using natural language commands:
 
-## Learn More
+- **Add tasks**: "Add buy groceries to my list" or "Remember to call mom"
+- **List tasks**: "What are my current tasks?" or "Show me my to-do list"
+- **Remove tasks**: "Remove groceries" or "Delete call mom"
+- **Clear all**: "Clear all tasks" or "Reset my list"
 
-To learn more about Next.js, take a look at the following resources:
+The agent will remember your tasks between sessions thanks to localStorage persistence.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+This project is licensed under the [MIT License](LICENSE). See the LICENSE file for more information.
